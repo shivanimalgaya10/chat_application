@@ -27,17 +27,15 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
-    # 3 Build Backend Image
     - name: Build Backend
-      run: docker build -t $BACKEND_IMAGE:${{ github.sha }} ./backend
-
+      run: docker build -t $BACKEND_IMAGE:${{ github.sha }} -f backend/Dockerfile backend
     # 4 Push Backend
     - name: Push Backend
       run: docker push $BACKEND_IMAGE:${{ github.sha }}
 
     # 5 Build Frontend
     - name: Build Frontend
-      run: docker build -t $FRONTEND_IMAGE:${{ github.sha }} ./frontend
+      run: docker build -t $FRONTEND_IMAGE:${{ github.sha }} -f frontend/Dockerfile frontend
 
     # 6 Push Frontend
     - name: Push Frontend
