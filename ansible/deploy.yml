@@ -30,7 +30,7 @@
         state: present
 
     - name: Copy docker-compose file
-      copy:
+      template:
         src: ../docker-compose.yml
         dest: /home/ubuntu/docker-compose.yml
 
