@@ -13,7 +13,7 @@ services:
       - fullstack-chatapp
 
   backend:
-    build: ./backend
+    image: madhul423/devops-backend:latest   # ✅ build: ./backend hata diya
     container_name: full-stack_backend
     environment:
       - NODE_ENV=production
@@ -28,7 +28,7 @@ services:
       - fullstack-chatapp
 
   frontend:
-    build: ./frontend
+    image: madhul423/devops-frontend:latest  # ✅ build: ./frontend hata diya
     container_name: full-stack_frontend
     ports:
       - "8756:80"
