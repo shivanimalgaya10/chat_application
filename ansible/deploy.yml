@@ -38,3 +38,5 @@
       command: docker-compose up -d
       args:
         chdir: /home/ubuntu
+      become: true              # ✅ root ke through run karo
+      become_user: root         # ✅ group issue bypass ho jayega
