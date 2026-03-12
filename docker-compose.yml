@@ -13,12 +13,16 @@ services:
       - fullstack-chatapp
 
   backend:
-    image: madhul423/devops-backend:{{ image_tag }}  
+    image: madhul423/devops-backend:{{ image_tag }} 
+    # build:
+    #   context: ./backend 
     container_name: full-stack_backend
     environment:
       - NODE_ENV=production
-      - MONGODB_URI=mongodb://root:root@mongodb:27017
+      - MONGODB_URI=mongodb://root:root@mongodb:27017/?authSource=admin
       - JWT_SECRET={{ jwt_secret }}
+      # - JWT_SECRET=mysecret
+      
       - PORT=5001
     depends_on:
       - mongodb
@@ -29,6 +33,8 @@ services:
 
   frontend:
     image: madhul423/devops-frontend:{{ image_tag }}  
+    # build:
+    #   context: ./frontend
     container_name: full-stack_frontend
     ports:
       - "8756:80"
