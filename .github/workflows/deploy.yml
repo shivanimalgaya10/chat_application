@@ -34,7 +34,7 @@ jobs:
 
     # 5 Trivy Scan Backend
     - name: Scan Backend Image
-      uses: aquasecurity/trivy-action@v0.19.0
+      uses: aquasecurity/trivy-action@v0.20.0
       with:
         image-ref: ${{ env.BACKEND_IMAGE }}:${{ github.sha }}
         severity: CRITICAL,HIGH
@@ -51,7 +51,7 @@ jobs:
 
     # 8 Trivy Scan Frontend
     - name: Scan Frontend Image
-      uses: aquasecurity/trivy-action@v0.19.0
+      uses: aquasecurity/trivy-action@v0.20.0
       with:
         image-ref: ${{ env.FRONTEND_IMAGE }}:${{ github.sha }}
         severity: CRITICAL,HIGH
