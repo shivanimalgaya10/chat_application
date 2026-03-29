@@ -1,51 +1,144 @@
+# - hosts: all
+#   become: true
+
+#   tasks:
+
+#     - name: Update packages
+#       apt:
+#         update_cache: yes
+
+#     - name: Install Docker
+#       apt:
+#         name: docker.io
+#         state: present
+
+#     - name: Start Docker
+#       service:
+#         name: docker
+#         state: started
+#         enabled: true
+
+#     - name: Add ubuntu user to docker group
+#       user:
+#         name: ubuntu
+#         groups: docker
+#         append: yes
+
+#     - name: Install Docker Compose
+#       apt:
+#         name: docker-compose
+#         state: present
+
+#     - name: Copy docker-compose file
+#       template:
+#         src: ../docker-compose.yml
+#         dest: /home/ubuntu/docker-compose.yml
+
+#     - name: Stop old containers        # ← ADD THIS
+#       command: docker-compose down
+#       args:
+#         chdir: /home/ubuntu
+#       ignore_errors: yes
+
+#     - name: Pull latest images         # ← ADD THIS
+#       command: docker-compose pull
+#       args:
+#         chdir: /home/ubuntu
+
+#     - name: Start containers
+#       command: docker-compose up -d
+#       args:
+#         chdir: /home/ubuntu
+
 - hosts: all
   become: true
 
+  vars:
+    image_tag: "{{ image_tag }}"
+
   tasks:
 
-    - name: Update packages
-      apt:
-        update_cache: yes
+  # -------------------------
+  # Install Docker
+  # -------------------------
+  - name: Install Docker
+    apt:
+      name: docker.io
+      state: present
+      update_cache: yes
 
-    - name: Install Docker
-      apt:
-        name: docker.io
-        state: present
+  - name: Start Docker
+    service:
+      name: docker
+      state: started
+      enabled: true
 
-    - name: Start Docker
-      service:
-        name: docker
-        state: started
-        enabled: true
+  - name: Add ubuntu to docker group
+    user:
+      name: ubuntu
+      groups: docker
+      append: yes
 
-    - name: Add ubuntu user to docker group
-      user:
-        name: ubuntu
-        groups: docker
-        append: yes
+  # -------------------------
+  # Install kubectl
+  # -------------------------
+  - name: Install kubectl
+    shell: |
+      curl -LO "https://dl.k8s.io/release/v1.29.0/bin/linux/amd64/kubectl"
+      install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
 
-    - name: Install Docker Compose
-      apt:
-        name: docker-compose
-        state: present
+  # -------------------------
+  # Install Minikube
+  # -------------------------
+  - name: Install Minikube
+    shell: |
+      curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+      install minikube-linux-amd64 /usr/local/bin/minikube
 
-    - name: Copy docker-compose file
-      template:
-        src: ../docker-compose.yml
-        dest: /home/ubuntu/docker-compose.yml
+  # -------------------------
+  # Start Minikube
+  # -------------------------
+  - name: Start Minikube
+    become_user: ubuntu
+    shell: |
+      minikube start --driver=docker
+    args:
+      creates: /home/ubuntu/.minikube
 
-    - name: Stop old containers        # ← ADD THIS
-      command: docker-compose down
-      args:
-        chdir: /home/ubuntu
-      ignore_errors: yes
+  # -------------------------
+  # Enable Ingress (optional)
+  # -------------------------
+  - name: Enable Ingress
+    become_user: ubuntu
+    shell: minikube addons enable ingress
 
-    - name: Pull latest images         # ← ADD THIS
-      command: docker-compose pull
-      args:
-        chdir: /home/ubuntu
+  # -------------------------
+  # Copy Kubernetes files
+  # -------------------------
+  - name: Copy Kubernetes manifests
+    copy:
+      src: ../kubernetes/
+      dest: /home/ubuntu/kubernetes/
 
-    - name: Start containers
-      command: docker-compose up -d
-      args:
-        chdir: /home/ubuntu
+  # -------------------------
+  # Replace Image Tags
+  # -------------------------
+  - name: Replace backend image tag
+    replace:
+      path: /home/ubuntu/kubernetes/b-deployment.yml
+      regexp: 'IMAGE_TAG'
+      replace: "{{ image_tag }}"
+
+  - name: Replace frontend image tag
+    replace:
+      path: /home/ubuntu/kubernetes/f-deployment.yml
+      regexp: 'IMAGE_TAG'
+      replace: "{{ image_tag }}"
+
+  # -------------------------
+  # Apply manifests
+  # -------------------------
+  - name: Deploy to Minikube
+    become_user: ubuntu
+    shell: |
+      kubectl apply -f /home/ubuntu/kubernetes/
