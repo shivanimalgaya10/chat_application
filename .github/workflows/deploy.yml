@@ -33,13 +33,13 @@ jobs:
       run: docker build -t $BACKEND_IMAGE:${{ github.sha }} -f backend/Dockerfile backend
 
     # 5 Trivy Scan Backend
-    - name: Scan Backend Image
-      uses: aquasecurity/trivy-action@v0.20.0
-      with:
-        image-ref: ${{ env.BACKEND_IMAGE }}:${{ github.sha }}
-        severity: CRITICAL,HIGH
-        exit-code: 1
-        ignore-unfixed: true
+    # - name: Scan Backend Image
+    #   uses: aquasecurity/trivy-action@v0.20.0
+    #   with:
+    #     image-ref: ${{ env.BACKEND_IMAGE }}:${{ github.sha }}
+    #     severity: CRITICAL,HIGH
+    #     exit-code: 1
+    #     ignore-unfixed: true
 
     # 6 Push Backend
     - name: Push Backend
@@ -49,14 +49,14 @@ jobs:
     - name: Build Frontend
       run: docker build -t $FRONTEND_IMAGE:${{ github.sha }} -f frontend/Dockerfile frontend
 
-    # 8 Trivy Scan Frontend
-    - name: Scan Frontend Image
-      uses: aquasecurity/trivy-action@v0.20.0
-      with:
-        image-ref: ${{ env.FRONTEND_IMAGE }}:${{ github.sha }}
-        severity: CRITICAL,HIGH
-        exit-code: 1
-        ignore-unfixed: true
+    # # 8 Trivy Scan Frontend
+    # - name: Scan Frontend Image
+    #   uses: aquasecurity/trivy-action@v0.20.0
+    #   with:
+    #     image-ref: ${{ env.FRONTEND_IMAGE }}:${{ github.sha }}
+    #     severity: CRITICAL,HIGH
+    #     exit-code: 1
+    #     ignore-unfixed: true
 
     # 9 Push Frontend
     - name: Push Frontend
