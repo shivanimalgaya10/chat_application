@@ -142,3 +142,5 @@
     become_user: ubuntu
     shell: |
       kubectl apply -f /home/ubuntu/kubernetes/
+
+   #   
