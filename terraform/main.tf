@@ -72,4 +72,4 @@ resource "aws_instance" "devops_ec2" {
     Name = "DevOps-Docker-Server"
   }
 }
-#
+##
