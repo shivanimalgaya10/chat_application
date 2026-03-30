@@ -104,7 +104,7 @@
   - name: Start Minikube
     become_user: ubuntu
     shell: |
-      minikube start --driver=docker
+      minikube start --driver=docker --memory=3500 --cpus=2
     args:
       creates: /home/ubuntu/.minikube
 

@@ -68,6 +68,12 @@ resource "aws_instance" "devops_ec2" {
 
   associate_public_ip_address = true
 
+
+  root_block_device {
+    volume_size = 20
+    volume_type = "gp3"
+  }
+
   tags = {
     Name = "DevOps-Docker-Server"
   }
