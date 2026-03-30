@@ -98,6 +98,9 @@
   # -------------------------
   # Start Minikube
   # -------------------------
+  - name: Reset SSH connection
+    meta: reset_connection
+    
   - name: Start Minikube
     become_user: ubuntu
     shell: |
