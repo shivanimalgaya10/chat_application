@@ -70,8 +70,15 @@ resource "aws_instance" "devops_ec2" {
 
 
   root_block_device {
-    volume_size = 20
+    volume_size = 10
     volume_type = "gp3"
+  }
+
+      instance_market_options {
+    market_type = "spot"
+    spot_options {
+      instance_interruption_behavior = "terminate"
+    }
   }
 
   tags = {
