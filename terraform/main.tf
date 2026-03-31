@@ -74,12 +74,7 @@ resource "aws_instance" "devops_ec2" {
     volume_type = "gp3"
   }
 
-      instance_market_options {
-    market_type = "spot"
-    spot_options {
-      instance_interruption_behavior = "terminate"
-    }
-  }
+   
 
   tags = {
     Name = "DevOps-Docker-Server"
