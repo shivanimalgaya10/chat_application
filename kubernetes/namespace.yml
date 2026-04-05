@@ -1,11 +1,4 @@
 apiVersion: v1
-kind: Service
+kind: Namespace
 metadata:
-  name: mongodb
-  namespace: chat-app
-spec:
-  selector:
-    app: mongodb
-  ports:
-  - port: 27017
-    targetPort: 27017
+  name: chat-app
