@@ -10,13 +10,13 @@ spec:
       app: frontend
   template:
     metadata:
-      name: frontend-pod
+      name: frontend
       namespace: chat-app
       labels: 
         app: frontend
     spec:
       containers:
-      - name: chatapp-frontend
+      - name: frontend
         image: madhul423/devops-frontend:<commit-sha>
         ports:
         - containerPort: 80
