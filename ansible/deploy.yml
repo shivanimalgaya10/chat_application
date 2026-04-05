@@ -205,7 +205,7 @@
             - role: control-plane
               extraPortMappings:
                 - containerPort: 30000
-                  hostPort: 3000
+                  hostPort: 80
                   protocol: TCP
                 - containerPort: 30001
                   hostPort: 5001
