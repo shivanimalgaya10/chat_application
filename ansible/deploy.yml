@@ -1,149 +1,354 @@
+# # - hosts: all
+# #   become: true
+
+# #   tasks:
+
+# #     - name: Update packages
+# #       apt:
+# #         update_cache: yes
+
+# #     - name: Install Docker
+# #       apt:
+# #         name: docker.io
+# #         state: present
+
+# #     - name: Start Docker
+# #       service:
+# #         name: docker
+# #         state: started
+# #         enabled: true
+
+# #     - name: Add ubuntu user to docker group
+# #       user:
+# #         name: ubuntu
+# #         groups: docker
+# #         append: yes
+
+# #     - name: Install Docker Compose
+# #       apt:
+# #         name: docker-compose
+# #         state: present
+
+# #     - name: Copy docker-compose file
+# #       template:
+# #         src: ../docker-compose.yml
+# #         dest: /home/ubuntu/docker-compose.yml
+
+# #     - name: Stop old containers        # ← ADD THIS
+# #       command: docker-compose down
+# #       args:
+# #         chdir: /home/ubuntu
+# #       ignore_errors: yes
+
+# #     - name: Pull latest images         # ← ADD THIS
+# #       command: docker-compose pull
+# #       args:
+# #         chdir: /home/ubuntu
+
+# #     - name: Start containers
+# #       command: docker-compose up -d
+# #       args:
+# #         chdir: /home/ubuntu
+
 # - hosts: all
 #   become: true
 
+#   vars:
+#     image_tag: "{{ image_tag }}"
+
 #   tasks:
 
-#     - name: Update packages
-#       apt:
-#         update_cache: yes
+#   # -------------------------
+#   # Install Docker
+#   # -------------------------
+#   - name: Install Docker
+#     apt:
+#       name: docker.io
+#       state: present
+#       update_cache: yes
 
-#     - name: Install Docker
-#       apt:
-#         name: docker.io
-#         state: present
+#   - name: Start Docker
+#     service:
+#       name: docker
+#       state: started
+#       enabled: true
 
-#     - name: Start Docker
-#       service:
-#         name: docker
-#         state: started
-#         enabled: true
+#   - name: Add ubuntu to docker group
+#     user:
+#       name: ubuntu
+#       groups: docker
+#       append: yes
 
-#     - name: Add ubuntu user to docker group
-#       user:
-#         name: ubuntu
-#         groups: docker
-#         append: yes
+#   # -------------------------
+#   # Install kubectl
+#   # -------------------------
+#   - name: Install kubectl
+#     shell: |
+#       curl -LO "https://dl.k8s.io/release/v1.29.0/bin/linux/amd64/kubectl"
+#       install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
 
-#     - name: Install Docker Compose
-#       apt:
-#         name: docker-compose
-#         state: present
+#   # -------------------------
+#   # Install Minikube
+#   # -------------------------
+#   - name: Install Minikube
+#     shell: |
+#       curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+#       install minikube-linux-amd64 /usr/local/bin/minikube
 
-#     - name: Copy docker-compose file
-#       template:
-#         src: ../docker-compose.yml
-#         dest: /home/ubuntu/docker-compose.yml
+#   # -------------------------
+#   # Start Minikube
+#   # -------------------------
+#   - name: Reset SSH connection
+#     meta: reset_connection
+    
+#   - name: Start Minikube
+#     become_user: ubuntu
+#     shell: |
+#       minikube start --driver=docker --memory=3500 --cpus=2
+#     args:
+#       creates: /home/ubuntu/.minikube
 
-#     - name: Stop old containers        # ← ADD THIS
-#       command: docker-compose down
-#       args:
-#         chdir: /home/ubuntu
-#       ignore_errors: yes
+#   # -------------------------
+#   # Enable Ingress (optional)
+#   # -------------------------
+#   - name: Enable Ingress
+#     become_user: ubuntu
+#     shell: minikube addons enable ingress
 
-#     - name: Pull latest images         # ← ADD THIS
-#       command: docker-compose pull
-#       args:
-#         chdir: /home/ubuntu
+#   # -------------------------
+#   # Copy Kubernetes files
+#   # -------------------------
+#   - name: Copy Kubernetes manifests
+#     copy:
+#       src: ../kubernetes/
+#       dest: /home/ubuntu/kubernetes/
 
-#     - name: Start containers
-#       command: docker-compose up -d
-#       args:
-#         chdir: /home/ubuntu
+#   # -------------------------
+#   # Replace Image Tags
+#   # -------------------------
+#   - name: Replace backend image tag
+#     replace:
+#       path: /home/ubuntu/kubernetes/b-deployment.yml
+#       regexp: 'IMAGE_TAG'
+#       replace: "{{ image_tag }}"
 
-- hosts: all
+#   - name: Replace frontend image tag
+#     replace:
+#       path: /home/ubuntu/kubernetes/f-deployment.yml
+#       regexp: 'IMAGE_TAG'
+#       replace: "{{ image_tag }}"
+
+#   # -------------------------
+#   # Apply manifests
+#   # -------------------------
+#   - name: Deploy to Minikube
+#     become_user: ubuntu
+#     shell: |
+#       kubectl apply -f /home/ubuntu/kubernetes/
+
+#    #   
+
+- name: Deploy Chat App to Kubernetes (kind)
+  hosts: all
   become: true
-
-  vars:
-    image_tag: "{{ image_tag }}"
 
   tasks:
 
-  # -------------------------
-  # Install Docker
-  # -------------------------
-  - name: Install Docker
-    apt:
-      name: docker.io
-      state: present
-      update_cache: yes
+    # ─── SYSTEM SETUP ───────────────────────────────────────────
 
-  - name: Start Docker
-    service:
-      name: docker
-      state: started
-      enabled: true
+    - name: Update packages
+      apt:
+        update_cache: yes
 
-  - name: Add ubuntu to docker group
-    user:
-      name: ubuntu
-      groups: docker
-      append: yes
+    - name: Install Docker
+      apt:
+        name: docker.io
+        state: present
 
-  # -------------------------
-  # Install kubectl
-  # -------------------------
-  - name: Install kubectl
-    shell: |
-      curl -LO "https://dl.k8s.io/release/v1.29.0/bin/linux/amd64/kubectl"
-      install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+    - name: Start Docker
+      service:
+        name: docker
+        state: started
+        enabled: true
 
-  # -------------------------
-  # Install Minikube
-  # -------------------------
-  - name: Install Minikube
-    shell: |
-      curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
-      install minikube-linux-amd64 /usr/local/bin/minikube
+    - name: Add ubuntu user to docker group
+      user:
+        name: ubuntu
+        groups: docker
+        append: yes
 
-  # -------------------------
-  # Start Minikube
-  # -------------------------
-  - name: Reset SSH connection
-    meta: reset_connection
-    
-  - name: Start Minikube
-    become_user: ubuntu
-    shell: |
-      minikube start --driver=docker --memory=3500 --cpus=2
-    args:
-      creates: /home/ubuntu/.minikube
+    - name: Reset ssh connection
+      meta: reset_connection
 
-  # -------------------------
-  # Enable Ingress (optional)
-  # -------------------------
-  - name: Enable Ingress
-    become_user: ubuntu
-    shell: minikube addons enable ingress
+    # ─── INSTALL TOOLS ──────────────────────────────────────────
 
-  # -------------------------
-  # Copy Kubernetes files
-  # -------------------------
-  - name: Copy Kubernetes manifests
-    copy:
-      src: ../kubernetes/
-      dest: /home/ubuntu/kubernetes/
+    - name: Install kind
+      shell: |
+        curl -Lo /usr/local/bin/kind https://kind.sigs.k8s.io/dl/v0.27.0/kind-linux-amd64
+        chmod +x /usr/local/bin/kind
 
-  # -------------------------
-  # Replace Image Tags
-  # -------------------------
-  - name: Replace backend image tag
-    replace:
-      path: /home/ubuntu/kubernetes/b-deployment.yml
-      regexp: 'IMAGE_TAG'
-      replace: "{{ image_tag }}"
+    - name: Install kubectl
+      shell: |
+        curl -LO "https://dl.k8s.io/release/$(curl -sL https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+        chmod +x kubectl
+        mv kubectl /usr/local/bin/kubectl
 
-  - name: Replace frontend image tag
-    replace:
-      path: /home/ubuntu/kubernetes/f-deployment.yml
-      regexp: 'IMAGE_TAG'
-      replace: "{{ image_tag }}"
+    # ─── KIND CLUSTER ───────────────────────────────────────────
 
-  # -------------------------
-  # Apply manifests
-  # -------------------------
-  - name: Deploy to Minikube
-    become_user: ubuntu
-    shell: |
-      kubectl apply -f /home/ubuntu/kubernetes/
+    - name: Copy kind config
+      copy:
+        dest: /tmp/kind-config.yml
+        content: |
+          kind: Cluster
+          apiVersion: kind.x-k8s.io/v1alpha4
+          nodes:
+            - role: control-plane
+              extraPortMappings:
+                - containerPort: 30000
+                  hostPort: 3000
+                  protocol: TCP
+                - containerPort: 30001
+                  hostPort: 5001
+                  protocol: TCP
 
-   #   
+    - name: Create kind cluster
+      shell: kind create cluster --name chat-app --config /tmp/kind-config.yml --wait 90s
+
+    - name: Set up kubeconfig for ubuntu user
+      shell: |
+        mkdir -p /home/ubuntu/.kube
+        kind get kubeconfig --name chat-app > /home/ubuntu/.kube/config
+        chown -R ubuntu:ubuntu /home/ubuntu/.kube
+
+    - name: Verify cluster
+      become_user: ubuntu
+      command: kubectl get nodes
+
+    # ─── COPY KUBERNETES FILES ──────────────────────────────────
+
+    - name: Copy namespace
+      copy:
+        src: ../kubernetes/namespace.yml
+        dest: /home/ubuntu/namespace.yml
+
+    - name: Copy secrets
+      copy:
+        src: ../kubernetes/secrets.yml
+        dest: /home/ubuntu/secrets.yml
+
+    - name: Copy MongoDB PV
+      copy:
+        src: ../kubernetes/mongo-pv.yml
+        dest: /home/ubuntu/mongo-pv.yml
+
+    - name: Copy MongoDB PVC
+      copy:
+        src: ../kubernetes/mongo-pvc.yml
+        dest: /home/ubuntu/mongo-pvc.yml
+
+    - name: Copy MongoDB Deployment
+      copy:
+        src: ../kubernetes/mongo-deployment.yml
+        dest: /home/ubuntu/mongo-deployment.yml
+
+    - name: Copy MongoDB Service
+      copy:
+        src: ../kubernetes/mongo-service.yml
+        dest: /home/ubuntu/mongo-service.yml
+
+    - name: Copy Backend Deployment
+      copy:
+        src: ../kubernetes/b-deployment.yml
+        dest: /home/ubuntu/b-deployment.yml
+
+    - name: Copy Backend Service
+      copy:
+        src: ../kubernetes/b-service.yml
+        dest: /home/ubuntu/b-service.yml
+
+    - name: Copy Frontend Deployment
+      copy:
+        src: ../kubernetes/f-deployment.yml
+        dest: /home/ubuntu/f-deployment.yml
+
+    - name: Copy Frontend Service
+      copy:
+        src: ../kubernetes/f-service.yml
+        dest: /home/ubuntu/f-service.yml
+
+    # ─── APPLY IN ORDER ─────────────────────────────────────────
+
+    - name: Apply Namespace
+      become_user: ubuntu
+      command: kubectl apply -f /home/ubuntu/namespace.yml
+
+    - name: Apply Secrets
+      become_user: ubuntu
+      command: kubectl apply -f /home/ubuntu/secrets.yml
+
+    - name: Apply MongoDB PV
+      become_user: ubuntu
+      command: kubectl apply -f /home/ubuntu/mongo-pv.yml
+
+    - name: Apply MongoDB PVC
+      become_user: ubuntu
+      command: kubectl apply -f /home/ubuntu/mongo-pvc.yml
+
+    - name: Apply MongoDB Deployment
+      become_user: ubuntu
+      command: kubectl apply -f /home/ubuntu/mongo-deployment.yml
+
+    - name: Apply MongoDB Service
+      become_user: ubuntu
+      command: kubectl apply -f /home/ubuntu/mongo-service.yml
+
+    - name: Wait for MongoDB to be ready
+      become_user: ubuntu
+      command: kubectl rollout status deployment/mongodb -n chat-app --timeout=120s
+      retries: 3
+      delay: 10
+
+    - name: Apply Backend Deployment
+      become_user: ubuntu
+      command: kubectl apply -f /home/ubuntu/b-deployment.yml
+
+    - name: Apply Backend Service
+      become_user: ubuntu
+      command: kubectl apply -f /home/ubuntu/b-service.yml
+
+    - name: Apply Frontend Deployment
+      become_user: ubuntu
+      command: kubectl apply -f /home/ubuntu/f-deployment.yml
+
+    - name: Apply Frontend Service
+      become_user: ubuntu
+      command: kubectl apply -f /home/ubuntu/f-service.yml
+
+    # ─── UPDATE IMAGES ──────────────────────────────────────────
+
+    - name: Update Backend Image
+      become_user: ubuntu
+      command: kubectl set image deployment/backend backend=madhul423/devops-backend:{{ image_tag }}
+        -n chat-app
+
+
+    - name: Update Frontend Image
+      become_user: ubuntu
+      command: kubectl set image deployment/frontend frontend=madhul423/devops-frontend:{{ image_tag }}
+        -n chat-app
+
+    # ─── WAIT FOR ROLLOUTS ──────────────────────────────────────
+
+    - name: Wait for Backend Rollout
+      become_user: ubuntu
+      command: kubectl rollout status deployment/backend -n chat-app --timeout=120s
+
+    - name: Wait for Frontend Rollout
+      become_user: ubuntu
+      command: kubectl rollout status deployment/frontend -n chat-app --timeout=120s
+
+    # ─── VERIFY ─────────────────────────────────────────────────
+
+    - name: Get all resources
+      become_user: ubuntu
+      command: kubectl get all -n chat-app
