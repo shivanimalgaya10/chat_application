@@ -10,7 +10,7 @@ spec:
       app: mongodb
   template:
     metadata:
-      name: mongodb-pod
+      name: mongodb
       namespace: chat-app
       labels: 
         app: mongodb

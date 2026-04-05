@@ -304,7 +304,7 @@
 
     - name: Wait for MongoDB to be ready
       become_user: ubuntu
-      command: kubectl rollout status deployment/mongodb -n chat-app --timeout=120s
+      command: kubectl rollout status deployment/mongodb-deployment -n chat-app --timeout=120s
       retries: 3
       delay: 10
 
