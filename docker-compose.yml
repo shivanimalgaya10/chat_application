@@ -13,9 +13,8 @@ services:
       - fullstack-chatapp
 
   backend:
-    image: madhul423/devops-backend:{{ image_tag }} 
-    # build:
-    #   context: ./backend 
+    build:
+      context: ./backend 
     container_name: full-stack_backend
     environment:
       - NODE_ENV=production
@@ -32,9 +31,8 @@ services:
       - fullstack-chatapp
 
   frontend:
-    image: madhul423/devops-frontend:{{ image_tag }}  
-    # build:
-    #   context: ./frontend
+    build:
+      context: ./frontend
     container_name: full-stack_frontend
     ports:
       - "8756:80"
