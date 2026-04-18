@@ -92,8 +92,8 @@ jobs:
     - name: Setup SSH
       run: |
         mkdir -p ~/.ssh
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/first-keypair.pem
-        chmod 600 ~/.ssh/first-keypair.pem
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/first_key_pair.pem
+        chmod 600 ~/.ssh/first_key_pair.pem
 
     # 15 Install Ansible
     - name: Install Ansible
@@ -111,7 +111,7 @@ jobs:
       run: |
         ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook \
         -i "${{ steps.tf_output.outputs.ip }}," \
-        --private-key ~/.ssh/first-keypair.pem \
+        --private-key ~/.ssh/first_key_pair.pem \
         -u ubuntu \
         -e "image_tag=${{ github.sha }}" \
         -e "jwt_secret=${{ secrets.JWT_SECRET }}" \
