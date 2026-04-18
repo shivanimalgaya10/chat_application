@@ -328,13 +328,13 @@
 
     - name: Update Backend Image
       become_user: ubuntu
-      command: kubectl set image deployment/backend backend=madhul423/devops-backend:{{ image_tag }}
+      command: kubectl set image deployment/backend backend=shivanimalgaya10/devops-backend:{{ image_tag }}
         -n chat-app
 
 
     - name: Update Frontend Image
       become_user: ubuntu
-      command: kubectl set image deployment/frontend frontend=madhul423/devops-frontend:{{ image_tag }}
+      command: kubectl set image deployment/frontend frontend=shivanimalgaya10/devops-frontend:{{ image_tag }}
         -n chat-app
 
     # ─── WAIT FOR ROLLOUTS ──────────────────────────────────────
